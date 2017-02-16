@@ -10,24 +10,29 @@ import (
 	log "github.com/thinkboy/log4go"
 )
 
+//const var on time
 const (
 	dialTimeout  = 5 * time.Second
 	callTimeout  = 3 * time.Second
 	pingDuration = 1 * time.Second
 )
 
+//const errors
 var (
 	ErrRpc        = errors.New("rpc is not available")
 	ErrRpcTimeout = errors.New("rpc call timeout")
 )
 
 // Rpc client options.
+// include proto && addr
+//  tcp@255.255.255.255 ?
 type ClientOptions struct {
 	Proto string
 	Addr  string
 }
 
 // Client is rpc client.
+// member rpc.Client, seems that xrpc.Client inherit from rpc.Client
 type Client struct {
 	*rpc.Client
 	options ClientOptions
@@ -39,6 +44,9 @@ type Client struct {
 func Dial(options ClientOptions) (c *Client) {
 	c = new(Client)
 	c.options = options
+	// set rpc.Client, using ClientOptions to dial
+	// proto is described in ClientOptions
+	// establish connection with RPC server
 	c.dial()
 	return
 }

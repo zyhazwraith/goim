@@ -15,8 +15,10 @@ func InitRPCPush(addrs []string) (err error) {
 		network, addr string
 		c             = &PushRPC{}
 	)
+	// register struct PushRPC and its methods
 	rpc.Register(c)
 	for _, bind = range addrs {
+		// bind := tcp@localhost:8080 <- like this
 		if network, addr, err = inet.ParseNetwork(bind); err != nil {
 			log.Error("inet.ParseNetwork() error(%v)", err)
 			return
@@ -142,6 +144,8 @@ func (this *PushRPC) Rooms(arg *proto.NoArg, reply *proto.RoomsReply) (err error
 		bucket  *Bucket
 		roomIds = make(map[int32]struct{})
 	)
+	// Q: why can this snippet access DefaultServer?
+	//    which is declared in main.go
 	for _, bucket = range DefaultServer.Buckets {
 		for roomId, _ = range bucket.Rooms() {
 			roomIds[roomId] = struct{}{}

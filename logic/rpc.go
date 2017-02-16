@@ -51,7 +51,7 @@ func (r *RPC) Ping(arg *proto.NoArg, reply *proto.NoReply) error {
 	return nil
 }
 
-// Connect auth and registe login
+// Connect auth and register login
 func (r *RPC) Connect(arg *proto.ConnArg, reply *proto.ConnReply) (err error) {
 	if arg == nil {
 		err = ErrConnectArgs

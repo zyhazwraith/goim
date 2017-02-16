@@ -32,6 +32,8 @@ func main() {
 	}
 	perf.Init(Conf.PprofBind)
 	// logic rpc
+	// connect logic rpc server
+	// serves as rpc client
 	if err := InitLogicRpc(Conf.LogicAddrs); err != nil {
 		log.Warn("logic rpc current can't connect, retry")
 	}
@@ -49,6 +51,8 @@ func main() {
 			RoutineSize:   Conf.RoutineSize,
 		})
 	}
+	// round-robin is a scheduling algorithm
+	// which is used to provide load balancing
 	round := NewRound(RoundOptions{
 		Reader:       Conf.TCPReader,
 		ReadBuf:      Conf.TCPReadBuf,
@@ -73,22 +77,24 @@ func main() {
 	if err := InitTCP(Conf.TCPBind, Conf.MaxProc); err != nil {
 		panic(err)
 	}
-	// websocket comet
-	if err := InitWebsocket(Conf.WebsocketBind); err != nil {
-		panic(err)
-	}
-	// flash safe policy
-	if Conf.FlashPolicyOpen {
-		if err := InitFlashPolicy(); err != nil {
+	/*
+		// websocket comet
+		if err := InitWebsocket(Conf.WebsocketBind); err != nil {
 			panic(err)
 		}
-	}
-	// wss comet
-	if Conf.WebsocketTLSOpen {
-		if err := InitWebsocketWithTLS(Conf.WebsocketTLSBind, Conf.WebsocketCertFile, Conf.WebsocketPrivateFile); err != nil {
-			panic(err)
+		// flash safe policy
+		if Conf.FlashPolicyOpen {
+			if err := InitFlashPolicy(); err != nil {
+				panic(err)
+			}
 		}
-	}
+		// wss comet
+		if Conf.WebsocketTLSOpen {
+			if err := InitWebsocketWithTLS(Conf.WebsocketTLSBind, Conf.WebsocketCertFile, Conf.WebsocketPrivateFile); err != nil {
+				panic(err)
+			}
+		}
+	*/
 	// start rpc
 	if err := InitRPCPush(Conf.RPCPushAddrs); err != nil {
 		panic(err)

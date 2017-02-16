@@ -4,6 +4,7 @@ import (
 	"sync"
 )
 
+// Buffer is a linked list
 type Buffer struct {
 	buf  []byte
 	next *Buffer // next free buffer

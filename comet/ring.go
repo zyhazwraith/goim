@@ -7,13 +7,13 @@ import (
 )
 
 type Ring struct {
-	// read
+	// read pointer
 	rp   uint64
 	num  uint64
 	mask uint64
 	// TODO split cacheline, many cpu cache line size is 64
 	// pad [40]byte
-	// write
+	// write pointer
 	wp   uint64
 	data []proto.Proto
 }
@@ -30,6 +30,7 @@ func (r *Ring) Init(num int) {
 
 func (r *Ring) init(num uint64) {
 	// 2^N
+	// delete all `0` at the end of num(2-bit)
 	if num&(num-1) != 0 {
 		for num&(num-1) != 0 {
 			num &= (num - 1)
@@ -49,6 +50,7 @@ func (r *Ring) Get() (proto *proto.Proto, err error) {
 	return
 }
 
+// GetAdvanced?
 func (r *Ring) GetAdv() {
 	r.rp++
 	if Debug {

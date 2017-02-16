@@ -14,6 +14,7 @@ import (
 )
 
 // InitTCP listen all tcp.bind and start accept connections.
+// `accept` is the number of proc
 func InitTCP(addrs []string, accept int) (err error) {
 	var (
 		bind     string
@@ -33,6 +34,8 @@ func InitTCP(addrs []string, accept int) (err error) {
 			log.Debug("start tcp listen: \"%s\"", bind)
 		}
 		// split N core accept
+		// start `accept` N goroutine
+		// can listen multi addr@port
 		for i := 0; i < accept; i++ {
 			go acceptTCP(DefaultServer, listener)
 		}
@@ -40,7 +43,7 @@ func InitTCP(addrs []string, accept int) (err error) {
 	return
 }
 
-// Accept accepts connections on the listener and serves requests
+// `Accept` accepts connections on the listener and serves requests
 // for each incoming connection.  Accept blocks; the caller typically
 // invokes it in a go statement.
 func acceptTCP(server *Server, lis *net.TCPListener) {
@@ -68,12 +71,16 @@ func acceptTCP(server *Server, lis *net.TCPListener) {
 			return
 		}
 		go serveTCP(server, conn, r)
+		// for every incoming TCP connection, r++
+		// r stands for the number of incoming tcp connection
 		if r++; r == maxInt {
 			r = 0
 		}
 	}
 }
 
+// parameter `r`: the r-th connection
+//
 func serveTCP(server *Server, conn *net.TCPConn, r int) {
 	var (
 		// timer
@@ -91,6 +98,11 @@ func serveTCP(server *Server, conn *net.TCPConn, r int) {
 }
 
 // TODO linger close?
+// InitTCP create `Accept` goroutine to listen multi addr@port
+// Accept create ServeTCP goroutine for every incoming TCP connection
+// ServeTCP distribute Timer, Reader && Writer, call DefaultServer.serveTCP with these parameters
+// DefaultServer.serveTCP ...
+// is this method trying to deal with a certain TCP connection?
 func (server *Server) serveTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *itime.Timer) {
 	var (
 		err   error
@@ -103,17 +115,24 @@ func (server *Server) serveTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *itime.
 		rb    = rp.Get()
 		wb    = wp.Get()
 		ch    = NewChannel(server.Options.CliProto, server.Options.SvrProto, define.NoRoom)
-		rr    = &ch.Reader
-		wr    = &ch.Writer
+		// transmit by Serve
+		rr = &ch.Reader
+		wr = &ch.Writer
 	)
+	// protosomatic
 	ch.Reader.ResetBuffer(conn, rb.Bytes())
 	ch.Writer.ResetBuffer(conn, wb.Bytes())
 	// handshake
+	// Question: add a timer trigger?
+	// timed out trigger?
 	trd = tr.Add(server.Options.HandshakeTimeout, func() {
 		conn.Close()
 	})
 	// must not setadv, only used in auth
 	if p, err = ch.CliProto.Set(); err == nil {
+		// bucket[key] ?, authTCP gives this connection a
+		// key which arrange this connection to a bucket
+		// use cityhash32 to translate key to idx
 		if key, ch.RoomId, hb, err = server.authTCP(rr, wr, p); err == nil {
 			b = server.Bucket(key)
 			err = b.Put(key, ch)
@@ -251,8 +270,6 @@ func (server *Server) dispatchTCP(key string, conn *net.TCPConn, wr *bufio.Write
 			// server send
 			if err = p.WriteTCP(wr); err != nil {
 				goto failed
-			}
-			if white {
 				DefaultWhitelist.Log.Printf("key: %s write server proto%v\n", key, p)
 			}
 		}

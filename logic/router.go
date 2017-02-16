@@ -36,6 +36,8 @@ func InitRouter(addrs map[string]string) (err error) {
 	routerRing = ketama.NewRing(ketama.Base)
 	for serverId, bind := range addrs {
 		var rpcOptions []xrpc.ClientOptions
+		// split addrs[i] into proto && addr via `@`
+		// e.g tcp@8.8.8.8 ?
 		for _, bind = range strings.Split(bind, ",") {
 			if network, addr, err = inet.ParseNetwork(bind); err != nil {
 				log.Error("inet.ParseNetwork() error(%v)", err)
@@ -48,6 +50,7 @@ func InitRouter(addrs map[string]string) (err error) {
 			rpcOptions = append(rpcOptions, options)
 		}
 		// rpc clients
+		// connect rpc client?
 		rpcClient := xrpc.Dials(rpcOptions)
 		// ping & reconnect
 		rpcClient.Ping(routerServicePing)

@@ -15,6 +15,7 @@ type BucketOptions struct {
 }
 
 // Bucket is a channel holder.
+// the key is to understand this struct
 type Bucket struct {
 	cLock    sync.RWMutex        // protect the channels for chs
 	chs      map[string]*Channel // map sub key to a channel
@@ -49,8 +50,11 @@ func (b *Bucket) Put(key string, ch *Channel) (err error) {
 		ok   bool
 	)
 	b.cLock.Lock()
+	// why we use golang's natural hash algorithm here
+	// instead of cityhash or murmurahsh or ...
 	b.chs[key] = ch
 	if ch.RoomId != define.NoRoom {
+		// b.rooms  map[int32]*Room
 		if room, ok = b.rooms[ch.RoomId]; !ok {
 			room = NewRoom(ch.RoomId)
 			b.rooms[ch.RoomId] = room
@@ -85,6 +89,7 @@ func (b *Bucket) Del(key string) {
 }
 
 // Channel get a channel by sub key.
+// race condition, use Rlock
 func (b *Bucket) Channel(key string) (ch *Channel) {
 	b.cLock.RLock()
 	ch = b.chs[key]
@@ -93,6 +98,7 @@ func (b *Bucket) Channel(key string) (ch *Channel) {
 }
 
 // Broadcast push msgs to all channels in the bucket.
+// race condition, push msgs to every chs
 func (b *Bucket) Broadcast(p *proto.Proto) {
 	var ch *Channel
 	b.cLock.RLock()
