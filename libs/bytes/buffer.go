@@ -69,10 +69,16 @@ func (p *Pool) grow() {
 // Get get a free memory buffer.
 func (p *Pool) Get() (b *Buffer) {
 	p.lock.Lock()
-	if b = p.free; b == nil {
+	/*
+		if b = p.free; b == nil {
+			p.grow()
+			b = p.free
+		}
+	*/
+	if p.free == nil {
 		p.grow()
-		b = p.free
 	}
+	b = p.free
 	p.free = b.next
 	p.lock.Unlock()
 	return
@@ -82,6 +88,7 @@ func (p *Pool) Get() (b *Buffer) {
 func (p *Pool) Put(b *Buffer) {
 	p.lock.Lock()
 	b.next = p.free
+	// here `free` may better be named freeList
 	p.free = b
 	p.lock.Unlock()
 	return

@@ -14,7 +14,7 @@ import (
 // here is a short (may confusing) description about RWMutex
 
 // why not tell us directly ????
-// that room is esstially a linked-list
+// that room is essentially a linked-list
 // next *Channel is the pointer
 // other are all data item
 type Room struct {

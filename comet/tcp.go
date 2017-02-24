@@ -129,6 +129,9 @@ func (server *Server) serveTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *itime.
 		conn.Close()
 	})
 	// must not setadv, only used in auth
+	// stole data from ring.w[r.wp & w.mask]
+	// data are stored in a ring(an actual ring)
+	// Question： who fill q.body?
 	if p, err = ch.CliProto.Set(); err == nil {
 		// bucket[key] ?, authTCP gives this connection a
 		// key which arrange this connection to a bucket

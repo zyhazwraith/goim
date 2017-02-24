@@ -90,12 +90,17 @@ func (b *Bucket) Get(userId int64) (seqs []int32, servers []int32) {
 	return
 }
 
+// fuck this func, what are you doing????
+// fuck you f@ck you
+// userid, seqid, serverid ?
 func (b *Bucket) GetAll() (userIds []int64, seqs [][]int32, servers [][]int32) {
 	b.bLock.RLock()
 	i := len(b.sessions)
 	userIds = make([]int64, i)
+	// 2-d int32 array
 	seqs = make([][]int32, i)
 	servers = make([][]int32, i)
+	// each user has a session, each sesion has a seq to server map
 	for userId, s := range b.sessions {
 		i--
 		userIds[i] = userId

@@ -16,13 +16,14 @@ type BucketOptions struct {
 
 // Bucket is a channel holder.
 // the key is to understand this struct
+// operations on `Bucket` should be primitive and RWMutex is needed
 type Bucket struct {
 	cLock    sync.RWMutex        // protect the channels for chs
 	chs      map[string]*Channel // map sub key to a channel
 	boptions BucketOptions
 	// room
-	rooms       map[int32]*Room // bucket room channels
-	routines    []chan *proto.BoardcastRoomArg
+	rooms       map[int32]*Room                // bucket room channels
+	routines    []chan *proto.BoardcastRoomArg // struct { id, proto }
 	routinesNum uint64
 }
 
@@ -43,7 +44,7 @@ func NewBucket(boptions BucketOptions) (b *Bucket) {
 	return
 }
 
-// Put put a channel according with sub key.
+// Put put a channel according to sub key.
 func (b *Bucket) Put(key string, ch *Channel) (err error) {
 	var (
 		room *Room
@@ -55,13 +56,17 @@ func (b *Bucket) Put(key string, ch *Channel) (err error) {
 	b.chs[key] = ch
 	if ch.RoomId != define.NoRoom {
 		// b.rooms  map[int32]*Room
+		// allocate new space if room is new
 		if room, ok = b.rooms[ch.RoomId]; !ok {
+			// return a pointer
 			room = NewRoom(ch.RoomId)
 			b.rooms[ch.RoomId] = room
 		}
 	}
 	b.cLock.Unlock()
 	if room != nil {
+		// allocating success, assgin ch to room
+		// Put = lined list: insert
 		err = room.Put(ch)
 	}
 	return
@@ -97,18 +102,6 @@ func (b *Bucket) Channel(key string) (ch *Channel) {
 	return
 }
 
-// Broadcast push msgs to all channels in the bucket.
-// race condition, push msgs to every chs
-func (b *Bucket) Broadcast(p *proto.Proto) {
-	var ch *Channel
-	b.cLock.RLock()
-	for _, ch = range b.chs {
-		// ignore error
-		ch.Push(p)
-	}
-	b.cLock.RUnlock()
-}
-
 // Room get a room by roomid.
 func (b *Bucket) Room(rid int32) (room *Room) {
 	b.cLock.RLock()
@@ -131,12 +124,6 @@ func (b *Bucket) DelRoom(rid int32) {
 	return
 }
 
-// BroadcastRoom broadcast a message to specified room
-func (b *Bucket) BroadcastRoom(arg *proto.BoardcastRoomArg) {
-	num := atomic.AddUint64(&b.routinesNum, 1) % uint64(b.boptions.RoutineAmount)
-	b.routines[num] <- arg
-}
-
 // Rooms get all room id where online number > 0.
 func (b *Bucket) Rooms() (res map[int32]struct{}) {
 	var (
@@ -152,6 +139,26 @@ func (b *Bucket) Rooms() (res map[int32]struct{}) {
 	}
 	b.cLock.RUnlock()
 	return
+}
+
+// Codes related to push message are below
+
+// BroadcastRoom broadcast a message to specified room
+func (b *Bucket) BroadcastRoom(arg *proto.BoardcastRoomArg) {
+	num := atomic.AddUint64(&b.routinesNum, 1) % uint64(b.boptions.RoutineAmount)
+	b.routines[num] <- arg
+}
+
+// Broadcast push msgs to all channels in the bucket.
+// race condition, push msgs to every chs
+func (b *Bucket) Broadcast(p *proto.Proto) {
+	var ch *Channel
+	b.cLock.RLock()
+	for _, ch = range b.chs {
+		// ignore error
+		ch.Push(p)
+	}
+	b.cLock.RUnlock()
 }
 
 // roomproc

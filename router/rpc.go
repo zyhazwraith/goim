@@ -86,6 +86,20 @@ func (r *RouterRPC) Get(arg *proto.GetArg, reply *proto.GetReply) error {
 	return nil
 }
 
+// arg *proto.NoArg : struct NoArg{} <- null struct
+// GetAll func doesnt need parameters
+// use GetAllReply to
+//
+//	type GetAllReply struct {
+//		UserIds  []int64
+//		Sessions []*GetReply
+//	}
+//
+//	type GetReply struct {
+//		Seqs    []int32
+//		Servers []int32
+//	}
+//	GetAll return the detailed information of each Bucket
 func (r *RouterRPC) GetAll(arg *proto.NoArg, reply *proto.GetAllReply) error {
 	var (
 		i             int64
@@ -97,6 +111,8 @@ func (r *RouterRPC) GetAll(arg *proto.NoArg, reply *proto.GetAllReply) error {
 	for i = 0; i < r.BucketIdx; i++ {
 		userIds, seqs, servers = r.Buckets[i].GetAll()
 		reply.UserIds = append(reply.UserIds, userIds...)
+		// why not
+		// replay.Sessions = append(reply.Sessions, ssion
 		for j = 0; j < len(userIds); j++ {
 			session = new(proto.GetReply)
 			session.Seqs, session.Servers = seqs[j], servers[j]

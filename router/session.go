@@ -1,5 +1,6 @@
 package main
 
+// TODO this could be improved by change map to static array
 type Session struct {
 	seq     int32
 	servers map[int32]int32           // seq:server
@@ -40,6 +41,27 @@ func (s *Session) PutRoom(server int32, roomId int32) (seq int32) {
 	}
 	room[seq] = server
 	return
+}
+
+// return seqs[], servers[]
+// read from Session.servers which is a int to int map
+// Question: why not return pointer to Server directly
+// may be that struct server is describerd only in this file?
+// and should be invisible to other go file??
+//
+//	return s.server
+// fuck you, this function (fenkaide) return the inner data inside
+// Session.servers (an int to int map) why not named it as
+// Servers???? GetSeqtoServer may be better
+// let's have a look at factory principle
+// ohh, sorry about this, from golang's convention, getter method
+// shoudl be called as `Method`, so Servers is named correctly,
+// but the it may return Session.Server better
+// this func should return Session.servers
+// which is an int to int map
+// return the Map: seq->server
+func (s *Session) Servers() (servers map[int32]int32) {
+	return s.servers
 }
 
 func (s *Session) Servers() (seqs []int32, servers []int32) {

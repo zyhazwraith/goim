@@ -9,6 +9,11 @@ const (
 	maxCleanNum = 100
 )
 
+// Cleaner is a double-linked list
+// which resembles c-style struct
+// the real linked list is included inside
+// which is knonw as CleanData and the resest
+// are data items
 type CleanData struct {
 	Key        int64
 	expireTime time.Time
