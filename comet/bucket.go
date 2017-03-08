@@ -36,6 +36,8 @@ func NewBucket(boptions BucketOptions) (b *Bucket) {
 	//room
 	b.rooms = make(map[int32]*Room, boptions.RoomSize)
 	b.routines = make([]chan *proto.BoardcastRoomArg, boptions.RoutineAmount)
+	// fulfill routines with chan(type *proto.BroadcastRoomArg)
+	// every room
 	for i := int64(0); i < boptions.RoutineAmount; i++ {
 		c := make(chan *proto.BoardcastRoomArg, boptions.RoutineSize)
 		b.routines[i] = c
@@ -168,6 +170,7 @@ func (b *Bucket) roomproc(c chan *proto.BoardcastRoomArg) {
 			arg  *proto.BoardcastRoomArg
 			room *Room
 		)
+		// block until this channel receives a msg
 		arg = <-c
 		if room = b.Room(arg.RoomId); room != nil {
 			room.Push(&arg.P)

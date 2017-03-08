@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"goim/libs/crypto/aes"
 	"goim/libs/perf"
 	"runtime"
 

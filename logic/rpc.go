@@ -52,6 +52,7 @@ func (r *RPC) Ping(arg *proto.NoArg, reply *proto.NoReply) error {
 }
 
 // Connect auth and register login
+// ConnArg include token and serverid
 func (r *RPC) Connect(arg *proto.ConnArg, reply *proto.ConnReply) (err error) {
 	if arg == nil {
 		err = ErrConnectArgs

@@ -18,7 +18,7 @@ func encryptBlocks(b cipher.Block, src, dst []byte) error {
 		return ErrOutputSize
 	}
 	for len(src) > 0 {
-		b.Encrypt(dst, src[:b.BlockSize()])
+		b.Encrypt(dst, src)
 		src = src[b.BlockSize():]
 		dst = dst[b.BlockSize():]
 	}
