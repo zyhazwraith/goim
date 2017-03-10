@@ -2,11 +2,10 @@ package main
 
 import (
 	"crypto/aes"
-	"goim/libs/crypto/aes"
-	"goim/libs/define"
-	"strconv"
-
 	log "github.com/thinkboy/log4go"
+	myaes "goim/libs/crypto/aes"
+	//	"goim/libs/define"
+	//	"strconv"
 )
 
 // TODO Add AES-ECB padding and mysql connection part
@@ -27,24 +26,40 @@ func NewDefaultAuther() *DefaultAuther {
 //	then we have the desired string
 func (a *DefaultAuther) Auth(token string) (userId int64, roomId int32) {
 	var err error
-	cipherText := token
 
+	key := []byte("12345678")
+
+	cipherText := []byte(token)
 	cipher, err := aes.NewCipher(key)
 
 	if err != nil {
 		log.Error("", err)
 	}
 
-	plainText := aes.ECBDecrypt(cipher, cipherText)
-	if userId, err = strconv.ParseInt(token, 10, 64); err != nil {
-		userId = 0
-		roomId = define.NoRoom
-	} else {
-		roomId = 1 // only for debug
+	plainText, err := myaes.ECBDecrypt(cipher, cipherText)
+	if err != nil {
+		log.Error("decrypt failed", err)
 	}
+	originText := unpadding(plainText)
+	// originText is the token
+	userId = queryUser(originText)
+	roomId = 1
+	/*
+		if userId, err = strconv.ParseInt(token, 10, 64); err != nil {
+			userId = 0
+			roomId = define.NoRoom
+		} else {
+			roomId = 1 // only for debug
+		}
+	*/
 	return
 }
 
 func unpadding(src []byte) (dst []byte) {
-	var len, i int
+	var padLen, srcLen int
+	srcLen = len(src)
+
+	for padLen = 0; padLen < srcLen && src[srcLen-padLen-1] == 0; padLen++ {
+	}
+	return src[:srcLen-padLen]
 }

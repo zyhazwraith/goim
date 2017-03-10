@@ -78,6 +78,7 @@ func getRouterNode(userID int64) string {
 	return routerRing.Hash(strconv.FormatInt(userID, 10))
 }
 
+// userID is recognised by token, server identifies coments, roomId is assigned when auth
 func connect(userID int64, server, roomId int32) (seq int32, err error) {
 	var (
 		args   = proto.PutArg{UserId: userID, Server: server, RoomId: roomId}

@@ -18,6 +18,10 @@ func main() {
 	defer log.Close()
 	log.Info("logic[%s] start", Ver)
 	perf.Init(Conf.PprofAddrs)
+	// connnect db
+	if err := InitDB(Conf.DataSourceName); err != nil {
+		panic(err)
+	}
 	// router rpc
 	if err := InitRouter(Conf.RouterRPCAddrs); err != nil {
 		log.Warn("router rpc current can't connect, retry")

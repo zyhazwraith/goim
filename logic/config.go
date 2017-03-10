@@ -52,6 +52,8 @@ type Config struct {
 	// monitor
 	MonitorOpen  bool     `goconf:"monitor:open"`
 	MonitorAddrs []string `goconf:"monitor:addrs:,"`
+	// mysql
+	DataSourceName string `goconf:"mysql:dsn"`
 }
 
 func NewConfig() *Config {
