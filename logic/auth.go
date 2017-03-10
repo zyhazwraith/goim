@@ -27,13 +27,13 @@ func NewDefaultAuther() *DefaultAuther {
 func (a *DefaultAuther) Auth(token string) (userId int64, roomId int32) {
 	var err error
 
-	key := []byte("12345678")
+	key := []byte("1234567887654321")
 
 	cipherText := []byte(token)
 	cipher, err := aes.NewCipher(key)
 
 	if err != nil {
-		log.Error("", err)
+		log.Error("failed to create cipher", err)
 	}
 
 	plainText, err := myaes.ECBDecrypt(cipher, cipherText)
@@ -43,6 +43,8 @@ func (a *DefaultAuther) Auth(token string) (userId int64, roomId int32) {
 	originText := unpadding(plainText)
 	// originText is the token
 	userId = queryUser(originText)
+	// debug only
+	log.Debug("authenticaed userId %d", userId)
 	roomId = 1
 	/*
 		if userId, err = strconv.ParseInt(token, 10, 64); err != nil {
